@@ -1,0 +1,32 @@
+# Root "app of apps".
+# Apply this single manifest and Argo CD will discover every other Application
+# in the apps/ folder and create them automatically.
+#
+#   kubectl apply -f apps/root-app.yaml
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yuradmytriev/argocd-playground.git
+    targetRevision: HEAD
+    path: apps
+    directory:
+      recurse: false
+      # Skip this root file itself so we don't create a child of ourselves
+      exclude: "root-app.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

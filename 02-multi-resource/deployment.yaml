@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-multi
+  labels:
+    app: hello-multi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-multi
+  template:
+    metadata:
+      labels:
+        app: hello-multi
+    spec:
+      containers:
+        - name: nginx
+          image: nginxdemos/hello:plain-text
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: hello-multi-config
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi

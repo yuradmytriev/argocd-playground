@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 02-multi-resource
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yuradmytriev/argocd-playground.git
+    targetRevision: HEAD
+    path: 02-multi-resource
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: playground
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

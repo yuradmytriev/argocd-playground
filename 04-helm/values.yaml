@@ -1,0 +1,18 @@
+replicaCount: 2
+
+image:
+  repository: nginxdemos/hello
+  tag: plain-text
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    cpu: 50m
+    memory: 32Mi

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kustomize
+  labels:
+    app: hello-kustomize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-kustomize
+  template:
+    metadata:
+      labels:
+        app: hello-kustomize
+    spec:
+      containers:
+        - name: nginx
+          image: nginxdemos/hello:plain-text
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi

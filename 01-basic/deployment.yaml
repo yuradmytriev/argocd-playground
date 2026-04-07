@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-basic
+  labels:
+    app: hello-basic
+    example: "01-basic"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-basic
+  template:
+    metadata:
+      labels:
+        app: hello-basic
+    spec:
+      containers:
+        - name: nginx
+          image: nginxdemos/hello:plain-text
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi

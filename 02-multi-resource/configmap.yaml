@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-multi-config
+data:
+  GREETING: "Hello from Argo CD multi-resource example!"
+  COLOR: "blue"

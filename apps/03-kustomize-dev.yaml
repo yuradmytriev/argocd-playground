@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: 03-kustomize-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/yuradmytriev/argocd-playground.git
+    targetRevision: HEAD
+    # Argo CD auto-detects this as Kustomize because of kustomization.yaml
+    path: 03-kustomize/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: playground-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

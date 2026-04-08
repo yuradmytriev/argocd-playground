@@ -6,7 +6,13 @@ metadata:
     app: hello-basic
     example: "01-basic"
 spec:
+  revisionHistoryLimit: 2
   replicas: 1
+  # Recreate = kill old pod BEFORE starting new one.
+  # Required when using ReadWriteOnce PVCs — otherwise the rolling update
+  # stalls because the new pod can't attach the disk while the old pod holds it.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: hello-basic
@@ -43,8 +49,20 @@ spec:
 
         - name: redis
           image: redis:7-alpine
+          # --appendonly yes = AOF persistence (Redis writes every command
+          # to a log file). Combined with the volume mount below, counter
+          # survives pod restarts.
+          args:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --dir
+            - /data
           ports:
             - containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
           resources:
             requests:
               cpu: 10m
@@ -52,3 +70,8 @@ spec:
             limits:
               cpu: 100m
               memory: 64Mi
+
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: hello-basic-redis-data

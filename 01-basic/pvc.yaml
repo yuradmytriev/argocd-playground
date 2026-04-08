@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hello-basic-redis-data
+  labels:
+    app: hello-basic
+    example: "01-basic"
+spec:
+  accessModes:
+    - ReadWriteOnce        # one pod at a time (GCE Persistent Disk default)
+  resources:
+    requests:
+      storage: 1Gi          # smallest practical disk on GCE PD
+  # No storageClassName = use the cluster default.
+  # On GKE that's "standard-rwo" (pd-balanced) unless overridden.

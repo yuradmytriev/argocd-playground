@@ -6,7 +6,7 @@ metadata:
     app: hello-basic
     example: "01-basic"
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: hello-basic

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-basic-config
+  labels:
+    app: hello-basic
+    example: "01-basic"
+data:
+  MESSAGE: "Hello from Node.js, config via ConfigMap!"
+  VERSION: "5"

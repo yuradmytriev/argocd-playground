@@ -2,15 +2,17 @@ const http = require("http");
 const os = require("os");
 
 const PORT = process.env.PORT || 3000;
+const MESSAGE = process.env.MESSAGE || "Hello from Node.js (default)";
+const VERSION = process.env.VERSION || "0";
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(
     JSON.stringify(
       {
-        message: "Hello from Node.js on ArgoCD! v2",
+        message: MESSAGE,
         hostname: os.hostname(),
-        version: 1,
+        version: VERSION,
         path: req.url,
         method: req.method,
         timestamp: new Date().toISOString(),

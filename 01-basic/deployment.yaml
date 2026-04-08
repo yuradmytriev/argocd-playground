@@ -17,9 +17,12 @@ spec:
     spec:
       containers:
         - name: node
-          image: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic:0.1.1
+          image: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic:0.2.0
           ports:
             - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: hello-basic-config
           resources:
             requests:
               cpu: 10m

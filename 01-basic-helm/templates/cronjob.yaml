@@ -1,0 +1,48 @@
+{{- if .Values.cronjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "hello-basic-helm.name" . }}-cleanup
+  labels:
+    {{- include "hello-basic-helm.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronjob.schedule | quote }}
+  successfulJobsHistoryLimit: {{ .Values.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronjob.failedJobsHistoryLimit }}
+  startingDeadlineSeconds: {{ .Values.cronjob.startingDeadlineSeconds }}
+  concurrencyPolicy: {{ .Values.cronjob.concurrencyPolicy }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.cronjob.backoffLimit }}
+      activeDeadlineSeconds: {{ .Values.cronjob.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "hello-basic-helm.labels" . | nindent 12 }}
+            job: {{ include "hello-basic-helm.name" . }}-cleanup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: {{ .Values.cronjob.image }}
+              envFrom:
+                - configMapRef:
+                    name: {{ include "hello-basic-helm.name" . }}-config
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  echo "=== Cleanup job started at $(date -Iseconds) ==="
+                  echo "Hostname:  $(hostname)"
+                  echo "Message:   ${MESSAGE}"
+                  echo "Version:   ${VERSION}"
+                  echo "Pretending to clean up old data..."
+                  sleep 3
+                  echo "=== Cleanup done ==="
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+{{- end }}

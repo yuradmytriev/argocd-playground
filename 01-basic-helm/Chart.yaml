@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hello-basic-helm
+description: Helm chart version of the 01-basic example (Node app + Redis sidecar + ConfigMap + Secret + PVC + CronJob)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

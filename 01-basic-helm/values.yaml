@@ -1,0 +1,61 @@
+# Helm version of 01-basic. Same behavior, values-driven.
+
+nameOverride: hello-basic-helm
+exampleLabel: "01-basic-helm"
+
+replicaCount: 1
+revisionHistoryLimit: 2
+
+image:
+  repository: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic
+  tag: "797b6d6"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+config:
+  MESSAGE: "Hello from Node.js, config via Helm values!"
+  VERSION: "6"
+
+# NOTE: checking plaintext secrets into git is a playground-only pattern.
+# For real projects use Sealed Secrets, SOPS, External Secrets, etc.
+secret:
+  API_KEY: "super-secret-playground-key-123"
+
+redis:
+  image: redis:7-alpine
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+persistence:
+  enabled: true
+  size: 1Gi
+  # storageClassName: ""   # empty = cluster default
+  accessMode: ReadWriteOnce
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+cronjob:
+  enabled: true
+  schedule: "*/2 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 60
+  concurrencyPolicy: Forbid
+  backoffLimit: 2
+  activeDeadlineSeconds: 60
+  image: busybox:1.36

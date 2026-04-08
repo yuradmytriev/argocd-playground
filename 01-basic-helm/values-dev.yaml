@@ -1,0 +1,30 @@
+# Dev overrides for the 01-basic-helm chart.
+# Merged on top of values.yaml — only list what differs from defaults.
+
+exampleLabel: "01-basic-helm-dev"
+
+replicaCount: 1
+
+image:
+  tag: "dev"
+
+config:
+  MESSAGE: "Hello from DEV (Helm values merged on top of values.yaml)"
+  VERSION: "dev"
+
+# Smaller footprint in dev — tight CPU/memory, tiny disk,
+# and skip the periodic cleanup job entirely.
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+cronjob:
+  enabled: false

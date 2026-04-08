@@ -1,0 +1,47 @@
+# Prod overrides for the 01-basic-helm chart.
+# Merged on top of values.yaml — only list what differs from defaults.
+
+exampleLabel: "01-basic-helm-prod"
+
+# NOTE: the Node app in 01-basic talks to Redis via localhost (same-pod
+# sidecar), so running >1 replica would give each pod its own Redis and
+# its own ReadWriteOnce PVC — which is not shared state. For a REAL prod
+# setup you'd split Redis into a StatefulSet (see 01-basic/statefulset.yaml)
+# and point the app at it via a Service. Keeping replicas: 1 here so this
+# file stays consistent with the playground architecture.
+replicaCount: 1
+
+image:
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+config:
+  MESSAGE: "Hello from PROD (Helm values merged on top of values.yaml)"
+  VERSION: "prod"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+# Run cleanup nightly in prod instead of every 2 minutes.
+cronjob:
+  enabled: true
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid

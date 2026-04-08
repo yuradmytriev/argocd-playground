@@ -1,0 +1,9 @@
+{
+  "name": "hello-basic",
+  "version": "1.0.0",
+  "description": "Node.js JSON server for ArgoCD playground",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

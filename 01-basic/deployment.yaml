@@ -17,13 +17,9 @@ spec:
     spec:
       containers:
         - name: node
-          image: node:20-alpine
-          command: ["node", "/app/server.js"]
+          image: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic:0.1.0
           ports:
             - containerPort: 3000
-          volumeMounts:
-            - name: code
-              mountPath: /app
           resources:
             requests:
               cpu: 10m
@@ -31,7 +27,3 @@ spec:
             limits:
               cpu: 100m
               memory: 128Mi
-      volumes:
-        - name: code
-          configMap:
-            name: hello-basic-code

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: node
-          image: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic:8678a21
+          image: europe-central2-docker.pkg.dev/argocd-study-1775564129/playground/hello-basic:7183c86
           ports:
             - containerPort: 3000
           envFrom:

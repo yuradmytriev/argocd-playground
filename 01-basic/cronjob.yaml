@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello-basic-cleanup
+  labels:
+    app: hello-basic
+    example: "01-basic"
+spec:
+  # Every 2 minutes — intentionally frequent so you can see runs quickly.
+  # Real cron: "0 2 * * *" = nightly at 02:00, "0 */6 * * *" = every 6h, etc.
+  schedule: "*/2 * * * *"
+
+  # Keep at most 3 successful and 1 failed pod around for log inspection.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  # If the controller was down when a schedule passed, how far back to catch up.
+  # Without this, a long controller outage could trigger a flood of old runs.
+  startingDeadlineSeconds: 60
+
+  # What to do if the previous run is still going when the next schedule fires.
+  # Forbid = skip this run. Allow = run concurrently. Replace = kill old and start new.
+  concurrencyPolicy: Forbid
+
+  jobTemplate:
+    spec:
+      # Retry the Job up to 2 times on failure before giving up.
+      backoffLimit: 2
+
+      # Kill the pod after 60s if it hasn't finished.
+      activeDeadlineSeconds: 60
+
+      template:
+        metadata:
+          labels:
+            app: hello-basic
+            job: hello-basic-cleanup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: busybox:1.36
+              # Reuse the same ConfigMap the Deployment uses — demonstrates
+              # that ConfigMaps aren't bound to a particular workload type.
+              envFrom:
+                - configMapRef:
+                    name: hello-basic-config
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  echo "=== Cleanup job started at $(date -Iseconds) ==="
+                  echo "Hostname:  $(hostname)"
+                  echo "Message:   ${MESSAGE}"
+                  echo "Version:   ${VERSION}"
+                  echo "Pretending to clean up old data..."
+                  sleep 3
+                  echo "=== Cleanup done ==="
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi

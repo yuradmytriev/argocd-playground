@@ -1,0 +1,129 @@
+# Standalone Redis StatefulSet — an alternative to the Redis sidecar
+# inside deployment.yaml. This file exists to demonstrate how
+# StatefulSets differ from Deployments:
+#
+#   - Stable pod names: hello-basic-redis-ss-0, -1, -2 …
+#   - Each pod gets its OWN PersistentVolumeClaim via volumeClaimTemplates
+#     (data-hello-basic-redis-ss-0, data-hello-basic-redis-ss-1, …)
+#   - Requires a HEADLESS Service (clusterIP: None) so each pod gets a
+#     stable DNS entry: hello-basic-redis-ss-0.hello-basic-redis-ss-hl…
+#   - Ordered rollout: pod-0 must be Ready before pod-1 is created.
+#
+# It is NOT wired into the Node app (which still talks to the Redis
+# sidecar in deployment.yaml via localhost:6379). This file is an
+# educational example you can point a client at with:
+#   redis-cli -h hello-basic-redis-ss-0.hello-basic-redis-ss-hl 6379
+
+---
+# Headless Service — required by every StatefulSet.
+# clusterIP: None means DNS returns the pod IPs directly instead of
+# load-balancing through a virtual IP. That's what gives each pod a
+# stable, individually-addressable DNS name.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-basic-redis-ss-hl
+  labels:
+    app: hello-basic-redis-ss
+    example: "01-basic"
+spec:
+  clusterIP: None
+  selector:
+    app: hello-basic-redis-ss
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hello-basic-redis-ss
+  labels:
+    app: hello-basic-redis-ss
+    example: "01-basic"
+spec:
+  # Must match the headless Service above.
+  serviceName: hello-basic-redis-ss-hl
+
+  # Start with 1 replica. Bump to 2-3 to see ordered rollout and per-pod PVCs.
+  # Note: this is a single-leader Redis — multiple replicas here are for
+  # demo purposes only, not a real HA cluster. For real HA use the
+  # Bitnami Redis or Redis Operator chart.
+  replicas: 1
+
+  # How many old revisions of the pod template to keep.
+  revisionHistoryLimit: 2
+
+  # OrderedReady (default) = pods come up one at a time, in order.
+  # Parallel = all pods created at once. OrderedReady is the point of
+  # using a StatefulSet in the first place, so leave it alone.
+  podManagementPolicy: OrderedReady
+
+  # RollingUpdate here is fine — unlike Deployments, StatefulSets
+  # tear down and recreate one pod at a time and reattach the SAME
+  # PVC to the new pod, so there's no ReadWriteOnce deadlock.
+  updateStrategy:
+    type: RollingUpdate
+
+  selector:
+    matchLabels:
+      app: hello-basic-redis-ss
+
+  template:
+    metadata:
+      labels:
+        app: hello-basic-redis-ss
+    spec:
+      # Give Redis a moment to flush AOF on shutdown.
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --dir
+            - /data
+          ports:
+            - name: redis
+              containerPort: 6379
+          volumeMounts:
+            # Must match a volumeClaimTemplates entry below by name.
+            - name: data
+              mountPath: /data
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+  # One PVC per replica, created automatically.
+  # Naming: <name>-<statefulset>-<ordinal>, e.g. data-hello-basic-redis-ss-0.
+  # Deleting the StatefulSet does NOT delete these PVCs — that's
+  # intentional (data safety). Clean them up manually with
+  #   kubectl delete pvc -l app=hello-basic-redis-ss
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        # No storageClassName = use the cluster default (standard-rwo on GKE).

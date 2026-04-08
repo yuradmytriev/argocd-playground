@@ -1,0 +1,74 @@
+name: 01-basic build and deploy
+
+# Only run when app code changes — NOT when the deployment.yaml tag bump
+# commits back to the repo (otherwise we'd trigger an infinite loop).
+on:
+  push:
+    branches: [main]
+    paths:
+      - '01-basic/app/**'
+      - '.github/workflows/01-basic.yml'
+
+permissions:
+  contents: write   # needed to push the tag bump back to the repo
+
+env:
+  PROJECT_ID: argocd-study-1775564129
+  REGION: europe-central2
+  REPO: playground
+  IMAGE_NAME: hello-basic
+  DEPLOYMENT_FILE: 01-basic/deployment.yaml
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Compute image tag from commit SHA
+        id: tag
+        run: echo "tag=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}
+          docker build --platform=linux/amd64 -t $IMAGE ./01-basic/app
+
+      - name: Push Docker image
+        run: |
+          IMAGE=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}
+          docker push $IMAGE
+
+      - name: Update deployment.yaml with new tag
+        run: |
+          IMAGE_LINE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}:${{ steps.tag.outputs.tag }}"
+          sed -i "s|image: ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}:.*|image: ${IMAGE_LINE}|" ${DEPLOYMENT_FILE}
+          echo "--- Updated ${DEPLOYMENT_FILE} ---"
+          grep 'image:' ${DEPLOYMENT_FILE}
+
+      - name: Commit and push tag bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ${DEPLOYMENT_FILE}
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "ci(01-basic): bump image to ${{ steps.tag.outputs.tag }}"
+            git push
+          fi

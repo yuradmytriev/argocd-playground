@@ -7,4 +7,4 @@ metadata:
     example: "01-basic"
 data:
   MESSAGE: "Hello from Node.js, config via ConfigMap!"
-  VERSION: "5"
+  VERSION: "6"

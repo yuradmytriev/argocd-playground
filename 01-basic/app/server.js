@@ -2,7 +2,7 @@ const http = require("http");
 const os = require("os");
 
 const PORT = process.env.PORT || 3000;
-const MESSAGE = process.env.MESSAGE || "Hello from Node.js (default)";
+const MESSAGE = process.env.MESSAGE || "Hello from Node.js";
 const VERSION = process.env.VERSION || "0";
 
 const server = http.createServer((req, res) => {

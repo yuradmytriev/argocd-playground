@@ -23,6 +23,11 @@ spec:
           envFrom:
             - configMapRef:
                 name: hello-basic-config
+          env:
+            - name: REDIS_HOST
+              value: "localhost"
+            - name: REDIS_PORT
+              value: "6379"
           resources:
             requests:
               cpu: 10m
@@ -30,3 +35,15 @@ spec:
             limits:
               cpu: 100m
               memory: 128Mi
+
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

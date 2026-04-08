@@ -8,7 +8,7 @@ const server = http.createServer((req, res) => {
   res.end(
     JSON.stringify(
       {
-        message: "Hello from Node.js on ArgoCD!",
+        message: "Hello from Node.js on ArgoCD! v2",
         hostname: os.hostname(),
         version: 1,
         path: req.url,

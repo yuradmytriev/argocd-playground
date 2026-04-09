@@ -1,0 +1,10 @@
+{
+  "name": "hello-basic-waf",
+  "version": "1.0.0",
+  "description": "Simple Node.js WAF reverse proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
